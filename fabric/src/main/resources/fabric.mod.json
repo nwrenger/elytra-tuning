@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${description}",
+  "authors": ["${mod_author}"],
+  "contact": {
+    "homepage": "${homepage}",
+    "sources": "${sources}",
+    "issues": "${issues}"
+  },
+  "license": "${license}",
+  "icon": "elytra_speed_cap.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["io.github.nwrenger.elytraspeedcap.ElytraSpeedCap"],
+    "client": ["io.github.nwrenger.elytraspeedcap.ElytraSpeedCapClient"]
+  },
+  "mixins": ["${mod_id}.mixins.json"],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=${java_version}"
+  },
+  "suggests": {}
+}
