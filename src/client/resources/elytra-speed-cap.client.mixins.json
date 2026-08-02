@@ -1,9 +1,0 @@
-{
-  "required": true,
-  "package": "io.github.nwrenger.elytraspeedcap.mixin.client",
-  "compatibilityLevel": "JAVA_21",
-  "mixins": ["FireworkRocketEntityMixin", "LivingEntityElytraSpeedMixin"],
-  "injectors": {
-    "defaultRequire": 1
-  }
-}
