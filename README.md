@@ -25,12 +25,12 @@ Works in both **singleplayer** and on a dedicated **server**, with an optional c
 
 ## How It Works
 
-Minecraft calculates elytra movement on the **server**, while each client predicts its movement locally. The server configuration controls:
+Minecraft calculates elytra movement **server-side**, while the client predicts it **locally**. The server configuration controls:
 
 - **Speed limiting**, calculated from either horizontal (`X/Z`) or absolute (`X/Y/Z`) velocity.
 - **Firework boosts**, with configurable strength and duration multipliers relative to vanilla behavior.
 
-The client mod is optional. When installed, it receives the complete server configuration, resulting in smoother movement and accurate predictions.
+When installed on the client, the server synchronizes its complete configuration so both sides calculate flight consistently.
 
 > **Note**:
 > Without the mod on the client, players might snap back (lag back) because the server corrects their velocity when exceeding the cap.
@@ -59,10 +59,12 @@ Default contents:
 }
 ```
 
-- `speed.max`: Maximum allowed elytra speed in **blocks per second**.
-- `speed.calculation`: `HORIZONTAL` measures `X/Z` movement; `ABSOLUTE` measures total `X/Y/Z` velocity.
-- `rocket.boost_multiplier`: `0.0` disables acceleration, `1.0` is vanilla strength, and higher values add stronger forward acceleration.
-- `rocket.duration_multiplier`: `1.0` is vanilla duration, `0.5` halves it, and `2.0` doubles it.
+- `speed`
+  - `max`: Maximum allowed elytra speed in **blocks per second**.
+  - `calculation`: `HORIZONTAL` measures `X/Z` movement; `ABSOLUTE` measures total `X/Y/Z` velocity.
+- `rocket`
+  - `boost_multiplier`: `0.0` disables acceleration, `1.0` is vanilla strength, and higher values add stronger forward acceleration.
+  - `duration_multiplier`: `1.0` is vanilla duration, `0.5` halves it, and `2.0` doubles it.
 - Set `speed` or `rocket` to `null` to disable that section.
 - After editing, **restart the server/game** to apply changes.
 
