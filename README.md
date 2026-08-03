@@ -26,7 +26,7 @@ Works in both **singleplayer** and on a dedicated **server**, with an optional c
 ## How It Works
 
 Minecraft calculates elytra flight **server-side**, while the client predicts motion **locally**.
-To enforce a maximum speed cap:
+To apply the configured speed limits and firework tuning:
 
 - **Server Side**:
   Caps player velocity when exceeding the configured speed.
