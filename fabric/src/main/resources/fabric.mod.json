@@ -11,11 +11,11 @@
     "issues": "${issues}"
   },
   "license": "${license}",
-  "icon": "elytra_speed_cap.png",
+  "icon": "elytra_tuning.png",
   "environment": "*",
   "entrypoints": {
-    "main": ["io.github.nwrenger.elytraspeedcap.ElytraSpeedCap"],
-    "client": ["io.github.nwrenger.elytraspeedcap.ElytraSpeedCapClient"]
+    "main": ["io.github.nwrenger.elytratuning.ElytraTuning"],
+    "client": ["io.github.nwrenger.elytratuning.ElytraTuningClient"]
   },
   "mixins": ["${mod_id}.mixins.json"],
   "depends": {
