@@ -19,7 +19,7 @@ public abstract class LivingEntityMixin {
         at = @At("RETURN"),
         cancellable = true
     )
-    private void elytraTuning$capFallFlyingVelocity(
+    private void elytraTuning$fallFlying(
         Vec3 input,
         CallbackInfoReturnable<Vec3> callback
     ) {
@@ -32,11 +32,14 @@ public abstract class LivingEntityMixin {
             config,
             callback.getReturnValue()
         );
-        if (capped != null) {
-            callback.setReturnValue(capped);
+        if (capped == null) {
+            return;
         }
 
+        callback.setReturnValue(capped);
+
         if (entity instanceof ServerPlayer player) {
+            // Force sync the player's velocity if it was capped
             player.needsSync = true;
             player.hurtMarked = true;
         }

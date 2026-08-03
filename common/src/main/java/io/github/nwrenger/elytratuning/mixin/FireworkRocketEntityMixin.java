@@ -32,6 +32,9 @@ public abstract class FireworkRocketEntityMixin {
     @Inject(method = "tick", at = @At("HEAD"))
     private void elytraTuning$expireAfterLanding(CallbackInfo callback) {
         LivingEntity entity = this.attachedToEntity;
+
+        // When the rocket is attached to an entity that is not flying,
+        // we want to expire the rocket immediately after it lands.
         if (entity != null && !entity.isFallFlying()) {
             this.lifetime = Math.min(this.lifetime, this.life);
         }
@@ -59,12 +62,12 @@ public abstract class FireworkRocketEntityMixin {
         Vec3 adjustedVelocity = vanillaBoost;
 
         Rocket rocketConfig = config.rocket;
-        if (
-            rocketConfig != null &&
-            Double.isFinite(rocketConfig.boost_multiplier) &&
-            rocketConfig.boost_multiplier >= 0.0D
-        ) {
-            double multiplier = rocketConfig.boost_multiplier;
+        if (rocketConfig != null) {
+            double multiplier = rocketConfig.strength;
+
+            // If the multiplier is less than or equal to 1, we want to scale the
+            // vanilla boost by the multiplier. Otherwise, we want to add extra
+            // acceleration in the direction the player is looking.
             if (multiplier <= 1.0D) {
                 Vec3 oldVelocity = entity.getDeltaMovement();
                 Vec3 vanillaAcceleration = vanillaBoost.subtract(oldVelocity);
@@ -99,6 +102,7 @@ public abstract class FireworkRocketEntityMixin {
             return;
         }
 
+        // Force syncing the player's velocity
         player.needsSync = true;
         player.hurtMarked = true;
     }
@@ -126,16 +130,13 @@ public abstract class FireworkRocketEntityMixin {
             : Common.getConfig();
 
         Rocket rocketConfig = config.rocket;
-        if (
-            rocketConfig == null ||
-            !Double.isFinite(rocketConfig.duration_multiplier) ||
-            rocketConfig.duration_multiplier < 0.0D
-        ) {
+        if (rocketConfig == null) {
             return;
         }
 
+        // Apply the duration multiplier to the rocket's lifetime
         long adjustedLifetime = Math.round(
-            this.lifetime * rocketConfig.duration_multiplier
+            this.lifetime * rocketConfig.duration
         );
         this.lifetime = (int) Math.min(Integer.MAX_VALUE, adjustedLifetime);
     }

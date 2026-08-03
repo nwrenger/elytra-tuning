@@ -4,7 +4,7 @@
 [![modrinth](https://img.shields.io/badge/dynamic/json?url=https://api.modrinth.com/v2/project/elytra-tuning&label=downloads&query=$.downloads&color=#00AF5C)](https://modrinth.com/mod/elytra-tuning)
 [![modrinth](https://img.shields.io/modrinth/game-versions/elytra-tuning.svg)](https://modrinth.com/mod/elytra-tuning)
 
-A lightweight mod that adds configuration options to **limit elytra flight speed and tune firework boosting's strength and duration**.
+A lightweight mod that adds configuration options to **limit** elytra flight speed and **change** firework boost **strength** and **duration**.
 
 Works in both **singleplayer** and on a dedicated **server**, with an optional client-side mod that offers additional improvements for players.
 
@@ -53,8 +53,8 @@ Default contents:
     "calculation": "HORIZONTAL"
   },
   "rocket": {
-    "boost_multiplier": 1.0,
-    "duration_multiplier": 1.0
+    "strength": 1.0,
+    "duration": 1.0
   }
 }
 ```
@@ -63,16 +63,26 @@ Default contents:
   - `max`: Maximum allowed elytra speed in **blocks per second**.
   - `calculation`: `HORIZONTAL` measures `X/Z` movement; `ABSOLUTE` measures total `X/Y/Z` velocity.
 - `rocket`
-  - `boost_multiplier`: `0.0` disables acceleration, `1.0` is vanilla strength, and higher values add stronger forward acceleration.
-  - `duration_multiplier`: `1.0` is vanilla duration, `0.5` halves it, and `2.0` doubles it.
-- Set `speed` or `rocket` to `null` to disable that section.
+  - `strength`: `0.0` disables acceleration, `1.0` is vanilla strength, and higher values add stronger forward acceleration.
+  - `duration`: `1.0` is vanilla duration, `0.5` halves it, and `2.0` doubles it.
+- Set `speed` or `rocket` to `null` to not apply any tuning.
 - After editing, **restart the server/game** to apply changes.
 
 ## Showcase
 
-> TODO
+### Speed Limiting
 
-The max speed is set to **10 blocks per second**.
+**Configuration**
+
+```json
+{
+  "speed": {
+    "max": 10.0,
+    "calculation": "HORIZONTAL"
+  },
+  "rocket": null
+}
+```
 
 > **Rocket Boosting**: Measured in-game speed is 9.90 blocks per second.
 >
@@ -81,6 +91,24 @@ The max speed is set to **10 blocks per second**.
 > **Riptide Trident**: Measured in-game speed is 9.99 blocks per second.
 >
 > ![trident](showcase/trident.png)
+
+### Firework Tuning
+
+**Configuration**
+
+```json
+{
+  "speed": null,
+  "rocket": {
+    "strength": 8.0,
+    "duration": 2.0
+  }
+}
+```
+
+> **Rocket Boosting:** Measured in-game speed is 60.65 blocks per second.
+>
+> ![rocket-fast](showcase/rocket-fast.png)
 
 ## Contributing & Issues
 

@@ -13,7 +13,7 @@ public class Common {
     private static Config config;
 
     public static void init() {
-        config = Config.load();
+        loadConfig();
 
         Services.PLATFORM.registerPlayerJoin(player ->
             Packets.syncConfig(player, getConfig())
@@ -22,22 +22,32 @@ public class Common {
         Constants.LOG.info("[Elytra Tuning] Started successfully");
     }
 
+    public static void loadConfig() {
+        // Load and update state
+        Config newConfig = Config.load();
+
+        // Validate the config to ensure that all values are within acceptable ranges
+        Config.validate(newConfig);
+
+        // All is validated, so apply
+        config = newConfig;
+    }
+
     public static Config getConfig() {
         return Objects.requireNonNull(config);
     }
 
     @Nullable
     public static Vec3 capElytraVelocity(Config config, Vec3 velocity) {
+        // Check if speed capping is enabled, otherwise return null to indicate no capping is needed
         Speed speedConfig = config.speed;
-        if (speedConfig == null || speedConfig.calculation == null) {
+        if (speedConfig == null) {
             return null;
         }
 
-        double maxSpeedPerTick = speedConfig.max / Config.TICKS_PER_SECOND;
-        if (!Double.isFinite(maxSpeedPerTick) || maxSpeedPerTick <= 0.0D) {
-            return null;
-        }
+        double maxSpeedPerTick = speedConfig.max / Constants.TICKS_PER_SECOND;
 
+        // Get the speed based on the configured calculation method
         double speed = switch (speedConfig.calculation) {
             case HORIZONTAL -> Math.sqrt(
                 velocity.x * velocity.x + velocity.z * velocity.z
@@ -45,10 +55,13 @@ public class Common {
             case ABSOLUTE -> velocity.length();
         };
 
-        if (!Double.isFinite(speed) || speed <= maxSpeedPerTick) {
+        // Check if the current speed exceeds the maximum allowed speed per tick
+        // If it does not exceed, return null to indicate no capping is needed
+        if (speed <= maxSpeedPerTick) {
             return null;
         }
 
+        // Scale the velocity vector down to the maximum allowed speed while maintaining its direction
         double factor = maxSpeedPerTick / speed;
         Vec3 capped = velocity.scale(factor);
 
