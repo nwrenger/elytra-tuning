@@ -52,7 +52,10 @@ public abstract class LivingEntityMixin {
         Vec3 input,
         CallbackInfo callback
     ) {
-        if ((Object) this instanceof ServerPlayer player) {
+        if (
+            (Object) this instanceof ServerPlayer player &&
+            player.isFallFlying()
+        ) {
             player.hasImpulse = true;
             player.hurtMarked = true;
         }
