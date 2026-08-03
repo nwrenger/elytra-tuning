@@ -1,10 +1,10 @@
-# Elytra Speed Cap
+# Elytra Tuning
 
-[![modrinth](https://img.shields.io/modrinth/v/elytra-speed-cap.svg)](https://modrinth.com/mod/elytra-speed-cap)
-[![modrinth](https://img.shields.io/badge/dynamic/json?url=https://api.modrinth.com/v2/project/elytra-speed-cap&label=downloads&query=$.downloads&color=#00AF5C)](https://modrinth.com/mod/elytra-speed-cap)
-[![modrinth](https://img.shields.io/modrinth/game-versions/elytra-speed-cap.svg)](https://modrinth.com/mod/elytra-speed-cap)
+[![modrinth](https://img.shields.io/modrinth/v/elytra-tuning.svg)](https://modrinth.com/mod/elytra-tuning)
+[![modrinth](https://img.shields.io/badge/dynamic/json?url=https://api.modrinth.com/v2/project/elytra-tuning&label=downloads&query=$.downloads&color=#00AF5C)](https://modrinth.com/mod/elytra-tuning)
+[![modrinth](https://img.shields.io/modrinth/game-versions/elytra-tuning.svg)](https://modrinth.com/mod/elytra-tuning)
 
-A lightweight mod that **limits the maximum speed of elytra flight** to a configurable value.
+A lightweight mod that adds configuration options to **limit elytra flight speed and tune firework boosting's strength and duration**.
 
 Works in both **singleplayer** and on a dedicated **server**, with an optional client-side mod that offers additional improvements for players.
 
@@ -12,26 +12,25 @@ Works in both **singleplayer** and on a dedicated **server**, with an optional c
 
 ## Why Use This Mod?
 
-1. **Performance Boost**:
-   Prevents high-speed elytra flight from overwhelming your server's chunk loader while being designed to be very lightweight.
-2. **Comprehensive Coverage**:
-   Works with every kind of boosting: Vertical boosting, rocket boosting and even when boosting your flight via a riptide trident.
-3. **Fairness**:
-   Makes fast travel more balanced without disabling elytras altogether.
+1. **Configurable Speed Limits**:
+   Limit either horizontal flight speed or total three-dimensional velocity.
+2. **Firework Tuning**:
+   Adjust both the strength and duration of firework boosts.
+3. **Performance and Balance**:
+   Reduce extreme chunk loading and rebalance late-game travel without disabling elytras.
 4. **Flexible**:
-   The server-side mod prevents all players, including those without it, from flying faster than the configured speed, allowing vanilla setups to join seamlessly. The client-side mod enhances the flying experience, making it smoother.
+   The server enforces its configuration for every player, while the optional client installation synchronizes prediction for smoother flight.
 5. **Compatible**:
-   It's fully compatible with modded setups right out of the box. Like for example, the popular mod **Do a Barrel Roll**.
+   Handles normal flight, firework boosting, riptide launches, and modded flight setups such as **Do a Barrel Roll**.
 
 ## How It Works
 
-Minecraft calculates elytra flight **server-side**, while the client predicts motion **locally**.
-To enforce a maximum speed cap:
+Minecraft calculates elytra movement on the **server**, while each client predicts its movement locally. The server configuration controls:
 
-- **Server Side**:
-  Caps player velocity when exceeding the configured speed.
-- **Client Side (optional)**:
-  Syncs the flight prediction to prevent visual stutter or lagging back.
+- **Speed limiting**, calculated from either horizontal (`X/Z`) or absolute (`X/Y/Z`) velocity.
+- **Firework boosts**, with configurable strength and duration multipliers relative to vanilla behavior.
+
+The client mod is optional. When installed, it receives the complete server configuration, resulting in smoother movement and accurate predictions.
 
 > **Note**:
 > Without the mod on the client, players might snap back (lag back) because the server corrects their velocity when exceeding the cap.
@@ -42,21 +41,34 @@ To enforce a maximum speed cap:
 A config file is created at:
 
 ```sh
-./config/elytra-speed-cap.json
+./config/elytra-tuning.json
 ```
 
 Default contents:
 
 ```json
 {
-  "max_speed": 60.0
+  "speed": {
+    "max": 60.0,
+    "calculation": "HORIZONTAL"
+  },
+  "rocket": {
+    "boost_multiplier": 1.0,
+    "duration_multiplier": 1.0
+  }
 }
 ```
 
-- `max_speed`: Maximum allowed elytra speed in **blocks per second**.
+- `speed.max`: Maximum allowed elytra speed in **blocks per second**.
+- `speed.calculation`: `HORIZONTAL` measures `X/Z` movement; `ABSOLUTE` measures total `X/Y/Z` velocity.
+- `rocket.boost_multiplier`: `0.0` disables acceleration, `1.0` is vanilla strength, and higher values add stronger forward acceleration.
+- `rocket.duration_multiplier`: `1.0` is vanilla duration, `0.5` halves it, and `2.0` doubles it.
+- Set `speed` or `rocket` to `null` to disable that section.
 - After editing, **restart the server/game** to apply changes.
 
 ## Showcase
+
+> TODO
 
 The max speed is set to **10 blocks per second**.
 
@@ -76,8 +88,8 @@ I warmly welcome:
 - Feature requests
 - Pull requests
 
-Please open issues or PRs on [GitHub](https://github.com/nwrenger/elytra-speed-cap/issues).
+Please open issues or PRs on [GitHub](https://github.com/nwrenger/elytra-tuning/issues).
 
 ## License
 
-This project is licensed under the **MIT License**. See [LICENSE](https://github.com/nwrenger/elytra-speed-cap/blob/main/LICENSE) for details.
+This project is licensed under the **LGPLv3 License**. See [LICENSE](https://github.com/nwrenger/elytra-tuning/blob/main/LICENSE) for details.
