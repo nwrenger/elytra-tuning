@@ -25,16 +25,16 @@ Works in both **singleplayer** and on a dedicated **server**, with an optional c
 
 ## How It Works
 
-Minecraft calculates elytra movement **server-side**, while the client predicts it **locally**. The server configuration controls:
+Minecraft calculates elytra flight **server-side**, while the client predicts motion **locally**.
+To enforce a maximum speed cap:
 
-- **Speed limiting**, calculated from either horizontal (`X/Z`) or absolute (`X/Y/Z`) velocity.
-- **Firework boosts**, with configurable strength and duration multipliers relative to vanilla behavior.
-
-When installed on the client, the server synchronizes its complete configuration so both sides calculate flight consistently.
+- **Server Side**:
+  Caps player velocity when exceeding the configured speed.
+- **Client Side (optional)**:
+  Syncs the flight prediction to prevent visual stutter or lagging back.
 
 > **Note**:
 > Without the mod on the client, players might snap back (lag back) because the server corrects their velocity when exceeding the cap.
-> Server owners should encourage players to install the mod for a smoother experience.
 
 ## Configuration
 
