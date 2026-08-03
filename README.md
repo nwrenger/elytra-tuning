@@ -29,12 +29,12 @@ Minecraft calculates elytra flight **server-side**, while the client predicts mo
 To apply the configured speed limits and firework tuning:
 
 - **Server Side**:
-  Caps player velocity when exceeding the configured speed.
+  Enforces the configured speed limits and adjusts firework boost strength and duration.
 - **Client Side (optional)**:
-  Syncs the flight prediction to prevent visual stutter or lagging back.
+  Mirrors these settings locally to keep flight prediction consistent.
 
 > **Note**:
-> Without the mod on the client, players might snap back (lag back) because the server corrects their velocity when exceeding the cap.
+> Without the mod on the client, players might experience visual stutter or lag back because their local speed and firework prediction can differ from the server.
 
 ## Configuration
 
