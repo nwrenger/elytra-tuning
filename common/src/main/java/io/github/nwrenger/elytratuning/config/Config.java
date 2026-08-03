@@ -14,8 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class Config {
 
-    public static final double TICKS_PER_SECOND = 20.0D;
-
     private static final File CONFIG_FILE = new File(
         Services.PLATFORM.getConfigDir().toFile(),
         "elytra-tuning.json"
@@ -47,7 +45,7 @@ public class Config {
         }
     }
 
-    public static Config load() {
+    public static @Nullable Config load() {
         if (!CONFIG_FILE.exists()) {
             Config newConfig = new Config();
             newConfig.save();
@@ -55,14 +53,57 @@ public class Config {
         }
 
         try (Reader reader = Files.newBufferedReader(CONFIG_FILE.toPath())) {
-            Config config = GSON.fromJson(reader, Config.class);
-            return config != null ? config : new Config();
-        } catch (IOException | JsonParseException exception) {
+            return GSON.fromJson(reader, Config.class);
+        } catch (IOException exception) {
             Constants.LOG.error(
                 "[Elytra Tuning] Unable to read config file, using default config",
                 exception
             );
             return new Config();
+        }
+    }
+
+    public static void validate(@Nullable Config config) {
+        if (config == null) {
+            throw new IllegalStateException(
+                "[Elytra Tuning] Config must not be null"
+            );
+        }
+
+        if (config.speed != null) {
+            if (config.speed.calculation == null) {
+                throw new IllegalStateException(
+                    "[Elytra Tuning] `speed.calculation` must not be null"
+                );
+            }
+
+            if (
+                !Double.isFinite(config.speed.max) || config.speed.max <= 0.0D
+            ) {
+                throw new IllegalStateException(
+                    "[Elytra Tuning] `speed.max` must be finite and greater than 0"
+                );
+            }
+        }
+
+        if (config.rocket != null) {
+            if (
+                !Double.isFinite(config.rocket.strength) ||
+                config.rocket.strength < 0.0D
+            ) {
+                throw new IllegalStateException(
+                    "[Elytra Tuning] `rocket.strength` must be finite and greater than or equal to 0"
+                );
+            }
+
+            if (
+                !Double.isFinite(config.rocket.duration) ||
+                config.rocket.duration < 0.0D
+            ) {
+                throw new IllegalStateException(
+                    "[Elytra Tuning] `rocket.duration` must be finite and greater than or equal to 0"
+                );
+            }
         }
     }
 
@@ -73,8 +114,9 @@ public class Config {
     public static Config fromJson(String json) {
         try {
             Config config = GSON.fromJson(json, Config.class);
-            return config != null ? config : disabled();
-        } catch (JsonParseException exception) {
+            validate(config);
+            return config;
+        } catch (JsonParseException | IllegalStateException exception) {
             Constants.LOG.error(
                 "[Elytra Tuning] Unable to read synchronized config, disabling client-side behavior",
                 exception
