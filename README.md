@@ -6,9 +6,9 @@
 
 A lightweight mod that adds configuration options to **limit** elytra flight speed and **change** firework boost **strength** and **duration**.
 
-Works in both **singleplayer** and on a dedicated **server**, with an optional client-side mod that offers additional improvements for players.
+Works in both **singleplayer** and **multiplayer**, with an optional client-side mod that offers additional improvements for players.
 
-> Ideal for multiplayer servers that want to **nerf elytra rushing**, **reduce chunk-loading lag**, or **balance late-game travel**.
+> Ideal for multiplayer servers that want to **nerf elytra rushing**, **reduce chunk-loading lag**, or **buff late-game travel**.
 
 ## Why Use This Mod?
 
@@ -16,11 +16,9 @@ Works in both **singleplayer** and on a dedicated **server**, with an optional c
    Limit either horizontal flight speed or total three-dimensional velocity.
 2. **Firework Tuning**:
    Adjust both the strength and duration of firework boosts.
-3. **Performance and Balance**:
-   Reduce extreme chunk loading and rebalance late-game travel without disabling elytras.
-4. **Flexible**:
-   The server enforces its configuration for every player, while the optional client installation synchronizes prediction for smoother flight.
-5. **Compatible**:
+3. **Impenetrable**:
+   The server syncs the velocity changes to each player, ensuring all experience the same limits or buffs.
+4. **Compatible**:
    Handles normal flight, firework boosting, riptide launches, and modded flight setups such as **Do a Barrel Roll**.
 
 ## How It Works
