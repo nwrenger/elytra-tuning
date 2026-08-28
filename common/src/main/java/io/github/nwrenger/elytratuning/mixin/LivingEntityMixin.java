@@ -1,5 +1,7 @@
 package io.github.nwrenger.elytratuning.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.nwrenger.elytratuning.Common;
 import io.github.nwrenger.elytratuning.client.State;
 import io.github.nwrenger.elytratuning.config.Config;
@@ -8,35 +10,37 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
 
-    @Inject(
-        method = "updateFallFlyingMovement",
-        at = @At("RETURN"),
-        cancellable = true
+    @WrapOperation(
+        method = "travelFallFlying",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/world/entity/LivingEntity;setDeltaMovement(Lnet/minecraft/world/phys/Vec3;)V"
+        ),
+        require = 1,
+        allow = 1
     )
-    private void elytraTuning$fallFlying(
+    private void elytraTuning$capFallFlyingVelocity(
+        LivingEntity entity,
         Vec3 input,
-        CallbackInfoReturnable<Vec3> callback
+        Operation<Void> original
     ) {
-        LivingEntity entity = (LivingEntity) (Object) this;
         Config config = entity.level().isClientSide()
             ? State.config
             : Common.getConfig();
 
-        Vec3 capped = Common.capElytraVelocity(
-            config,
-            callback.getReturnValue()
-        );
+        Vec3 capped = Common.capElytraVelocity(config, input);
         if (capped == null) {
+            // Call with original velocity
+            original.call(entity, input);
             return;
         }
 
-        callback.setReturnValue(capped);
+        // Call with capped velocity
+        original.call(entity, capped);
 
         if (entity instanceof ServerPlayer player) {
             // Force sync the player's velocity if it was capped
