@@ -115,6 +115,7 @@ public class Config {
         try {
             Config config = GSON.fromJson(json, Config.class);
             validate(config);
+            Constants.LOG.info("[Elytra Tuning] Applied server config");
             return config;
         } catch (JsonParseException | IllegalStateException exception) {
             Constants.LOG.error(
