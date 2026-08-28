@@ -45,12 +45,10 @@ public abstract class LivingEntityMixin {
 
         Vec3 capped = Common.capElytraVelocity(config, input);
         if (capped == null) {
-            // Call with original velocity
             original.call(entity, input);
             return;
         }
 
-        // Call with capped velocity
         original.call(entity, capped);
 
         if (entity instanceof ServerPlayer player) {
