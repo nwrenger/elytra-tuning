@@ -43,7 +43,7 @@ jobs:
             exit 1
           fi
 
-          for branch in main 26.1 1.21.11 1.21.9 1.21; do
+          for branch in main 26.1 1.21.11 1.21.10 1.21.1; do
             if ! git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1; then
               echo "Required branch $branch does not exist on the remote."
               exit 1
@@ -61,8 +61,8 @@ jobs:
           - main
           - "26.1"
           - 1.21.11
-          - 1.21.9
-          - "1.21"
+          - 1.21.10
+          - 1.21.1
     env:
       RELEASE_VERSION: ${{ inputs.version }}
 
@@ -164,7 +164,7 @@ jobs:
 
           main_commit=""
 
-          for branch in main 26.1 1.21.11 1.21.9 1.21; do
+          for branch in main 26.1 1.21.11 1.21.10 1.21.1; do
             metadata="release-artifacts/source-$branch.txt"
             if [[ ! -f "$metadata" ]]; then
               echo "Missing source metadata for branch $branch."
