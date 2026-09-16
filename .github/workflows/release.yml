@@ -1,0 +1,262 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without a Minecraft suffix (for example, 0.1.0)
+        required: true
+        type: string
+      release_notes:
+        description: Optional Markdown release description
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-24.04
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate version and branches
+        shell: bash
+        run: |
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version must use the format X.Y.Z, for example 0.1.0."
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_VERSION" >/dev/null 2>&1; then
+            echo "Tag $RELEASE_VERSION already exists."
+            exit 1
+          fi
+
+          for branch in main 26.1 1.21.11 1.21.9 1.21; do
+            if ! git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1; then
+              echo "Required branch $branch does not exist on the remote."
+              exit 1
+            fi
+          done
+
+  build:
+    name: Build ${{ matrix.branch }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          - main
+          - "26.1"
+          - 1.21.11
+          - 1.21.9
+          - "1.21"
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+
+    steps:
+      - name: Checkout ${{ matrix.branch }}
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.branch }}
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: microsoft
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build
+        shell: bash
+        run: |
+          minecraft_version=$(sed -n 's/^minecraft_version=//p' gradle.properties)
+          if [[ -z "$minecraft_version" ]]; then
+            echo "minecraft_version is missing from gradle.properties."
+            exit 1
+          fi
+
+          ./gradlew build "-Pversion=${RELEASE_VERSION}+${minecraft_version}"
+
+          for loader in fabric neoforge; do
+            test -s "build/libs/elytra-tuning-${RELEASE_VERSION}+${minecraft_version}-${loader}.jar"
+          done
+
+          printf '%s\t%s\n' "$(git rev-parse HEAD)" "$minecraft_version" \
+            > "build/libs/source-${{ matrix.branch }}.txt"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.branch }}
+          path: |
+            build/libs/*.jar
+            build/libs/source-*.txt
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: build-*
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Create source tags
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          declare -a tags_to_push=()
+
+          create_tag() {
+            local tag=$1
+            local commit=$2
+            local existing_commit
+
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+              git fetch --force origin "refs/tags/$tag:refs/tags/$tag"
+              existing_commit=$(git rev-list -n 1 "$tag")
+
+              if [[ "$existing_commit" != "$commit" ]]; then
+                echo "Tag $tag already exists on a different commit."
+                exit 1
+              fi
+
+              echo "Tag $tag already points to the expected commit."
+              return
+            fi
+
+            git tag "$tag" "$commit"
+            tags_to_push+=("refs/tags/$tag")
+          }
+
+          main_commit=""
+
+          for branch in main 26.1 1.21.11 1.21.9 1.21; do
+            metadata="release-artifacts/source-$branch.txt"
+            if [[ ! -f "$metadata" ]]; then
+              echo "Missing source metadata for branch $branch."
+              exit 1
+            fi
+
+            IFS=$'\t' read -r commit minecraft_version < "$metadata"
+            if [[ ! "$commit" =~ ^[0-9a-f]{40}$ || ! "$minecraft_version" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+              echo "Invalid source metadata for branch $branch."
+              exit 1
+            fi
+
+            if ! git cat-file -e "$commit^{commit}"; then
+              git fetch origin "$commit"
+            fi
+
+            for loader in fabric neoforge; do
+              test -s "release-artifacts/elytra-tuning-${RELEASE_VERSION}+${minecraft_version}-${loader}.jar"
+            done
+
+            if [[ "$branch" == "main" ]]; then
+              main_commit=$commit
+            fi
+
+            create_tag "$RELEASE_VERSION+$minecraft_version" "$commit"
+          done
+
+          create_tag "$RELEASE_VERSION" "$main_commit"
+
+          if (( ${#tags_to_push[@]} > 0 )); then
+            git push --atomic origin "${tags_to_push[@]}"
+          fi
+
+      - name: Prepare release description
+        id: release_description
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          previous_tag=""
+          while IFS= read -r tag; do
+            if [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$tag" != "$RELEASE_VERSION" ]]; then
+              previous_tag=$tag
+              break
+            fi
+          done < <(git tag --list --sort=-version:refname)
+
+          notes=$RELEASE_NOTES
+          if [[ -z "$notes" ]]; then
+            request=$(jq -n \
+              --arg tag "$RELEASE_VERSION" \
+              --arg previous "$previous_tag" \
+              '{tag_name: $tag} + if $previous == "" then {} else {previous_tag_name: $previous} end')
+
+            notes=$(curl --fail-with-body --silent --show-error --location \
+              --request POST \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+              --data "$request" | jq --raw-output '.body // ""')
+          fi
+
+          notes=$(printf '%s\n' "$notes" | sed '/^\*\*Full Changelog\*\*: /d')
+          description="$RUNNER_TEMP/release-description.md"
+
+          if [[ -n "$notes" ]]; then
+            printf '%s\n\n' "$notes" > "$description"
+          else
+            : > "$description"
+          fi
+
+          if [[ -n "$previous_tag" ]]; then
+            printf '**Full Changelog**: %s/%s/commits/%s...%s\n' \
+              "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$previous_tag" "$RELEASE_VERSION" \
+              >> "$description"
+          else
+            printf '**Full Changelog**: %s/%s/commits/%s\n' \
+              "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$RELEASE_VERSION" \
+              >> "$description"
+          fi
+
+          echo "path=$description" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          target_commitish: main
+          name: Elytra Tuning ${{ inputs.version }}
+          body_path: ${{ steps.release_description.outputs.path }}
+          fail_on_unmatched_files: true
+          files: release-artifacts/*.jar
