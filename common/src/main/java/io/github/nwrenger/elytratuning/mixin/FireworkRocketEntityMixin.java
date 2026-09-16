@@ -104,7 +104,7 @@ public abstract class FireworkRocketEntityMixin {
 
         // Force syncing the player's velocity
         player.needsSync = true;
-        player.hurtMarked = true;
+        player.syncVelocity = true;
     }
 
     @Inject(

@@ -43,7 +43,7 @@ public abstract class LivingEntityMixin {
         if (entity instanceof ServerPlayer player) {
             // Force sync the player's velocity if it was capped
             player.needsSync = true;
-            player.hurtMarked = true;
+            player.syncVelocity = true;
         }
     }
 }
